@@ -1,2 +1,2 @@
 # SimpleDiceBot
-A discord bot for rolling dice, with programmable rolls.
+A discord bot for rolling dice, with macros.
