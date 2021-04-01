@@ -19,6 +19,11 @@ async def save(ctx):
 
 @bot.command(aliases=["r"], help="Roll dice")
 async def roll(ctx, arg):
+    try: user_macros = macros[ctx.message.author.id]     # First check if they are using a macro
+    except KeyError: user_macros = {}
+    if arg in user_macros.keys(): arg = user_macros[arg]
+
+
     dice_roll = arg # Keep a copy of the original roll, for later
 
     dice = [arg.split("d")[0]]
@@ -52,6 +57,68 @@ async def roll(ctx, arg):
     
 
     await ctx.send(embed=embed)
+
+@bot.command(aliases=["c"], help="Create a new macro")
+async def create(ctx, name, dice):
+    try: user_macros = macros[ctx.message.author.id]
+    except KeyError: user_macros = {}
+    user_macros[name] = dice
+    macros[ctx.message.author.id] = user_macros
+
+    embed = discord.Embed(
+        color=discord.Color.blue(),
+        title=f"{ctx.message.author.name}'s macro {name}",
+        description = f"Successfuly created macro {name} for {dice}"
+    )
+    
+
+    await ctx.send(embed=embed)
+
+
+@bot.command(aliases=["l"],help="List macros")
+async def list(ctx):
+    try: 
+        user_macros = macros[ctx.message.author.id]
+        result = ""
+        for name in user_macros:
+            result += f"\n{name}: {user_macros[name]}"
+    except KeyError: result = "You have no macros! Try !create to create one"
+    # If they already had a macro, and then deleted it, this error will not occur
+    # Therefore that message will never be given.
+    
+    
+    embed = discord.Embed(
+        color=discord.Color.blue(),
+        title=f"{ctx.message.author.name}'s macros",
+        description = result
+    )
+    
+
+    await ctx.send(embed=embed)
+
+@bot.command(aliases=["d"],help="Delete a macro")
+async def delete(ctx,name):
+    try: user_macros = macros[ctx.message.author.id]
+    except KeyError: user_macros = {}
+    result = user_macros.pop(name,None) # Returns none if no name
+    macros[ctx.message.author.id] = user_macros
+
+    if result == None: desc = f'No macro "{name}" found! Do !list to see your macros'
+    else: desc = f'Deleted macro "{name}"!'
+
+    embed = discord.Embed(
+        color=discord.Color.blue(),
+        title=f"{ctx.message.author.name} deleting macro {name}",
+        description = desc
+    )
+    
+
+    await ctx.send(embed=embed)
+
+
+
+
+        
 
 
 bot.run(DISCORD_TOKEN)
