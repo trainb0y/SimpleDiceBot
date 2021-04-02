@@ -8,17 +8,31 @@ load_dotenv()
 
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 
-macros = {} # discord uuid: [macroname:roll]
+try:
+    with open("save.json","r") as f:
+        str_key_macros = json.load(f)
+        # When serialized to JSON, the keys, which are python ints, become strings
+        # so something saved as {12345: {macros}} would load as {"12345": {macros}}
+
+        macros = {}   # This fixes that
+        for key in str_key_macros:
+            macros[int(key)] = str_key_macros[key]
+
+except FileNotFoundError: macros = {}
 
 bot = commands.Bot(command_prefix="!")
 
+
+
 @bot.command(help="Save all new macros")
 async def save(ctx):
-    for macro in macros:
-        pass 
+    with open("save.json","w") as f:
+        json.dump(macros,f)
+    
 
 @bot.command(aliases=["r"], help="Roll dice")
 async def roll(ctx, arg):
+    global macros
     try: user_macros = macros[ctx.message.author.id]     # First check if they are using a macro
     except KeyError: user_macros = {}
     if arg in user_macros.keys(): arg = user_macros[arg]
@@ -60,6 +74,7 @@ async def roll(ctx, arg):
 
 @bot.command(aliases=["c"], help="Create a new macro")
 async def create(ctx, name, dice):
+    global macros
     try: user_macros = macros[ctx.message.author.id]
     except KeyError: user_macros = {}
     user_macros[name] = dice
@@ -77,6 +92,7 @@ async def create(ctx, name, dice):
 
 @bot.command(aliases=["l"],help="List macros")
 async def list(ctx):
+    global macros
     try: 
         user_macros = macros[ctx.message.author.id]
         result = ""
@@ -93,11 +109,12 @@ async def list(ctx):
         description = result
     )
     
-
+  
     await ctx.send(embed=embed)
 
 @bot.command(aliases=["d"],help="Delete a macro")
 async def delete(ctx,name):
+    global macros
     try: user_macros = macros[ctx.message.author.id]
     except KeyError: user_macros = {}
     result = user_macros.pop(name,None) # Returns none if no name
