@@ -28,6 +28,14 @@ bot = commands.Bot(command_prefix="!")
 async def save(ctx):
     with open("save.json","w") as f:
         json.dump(macros,f)
+    embed = discord.Embed(
+        color=discord.Color.blue(),
+        title=f"Success!",
+        description = "All macros saved!"
+    )
+    
+    await ctx.send(embed=embed)
+    
     
 
 @bot.command(aliases=["r"], help="Roll dice")
